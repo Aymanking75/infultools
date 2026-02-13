@@ -53,6 +53,13 @@ const IntroSlider: React.FC<IntroSliderProps> = ({ onTryFree }) => {
   const nextSlide = () => setCurrent((prev) => (prev + 1) % slides.length);
   const prevSlide = () => setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
 
+  const scrollToHowItWorks = () => {
+    const section = document.getElementById('how-it-works');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div 
       className="relative h-[600px] md:h-[500px] w-full overflow-hidden rounded-b-[3rem] shadow-2xl group"
@@ -100,7 +107,10 @@ const IntroSlider: React.FC<IntroSliderProps> = ({ onTryFree }) => {
                     ابدأ التجربة المجانية
                   </button>
                   {slide.isMain && (
-                     <button className="px-8 py-4 bg-transparent border border-white/30 hover:bg-white/10 text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm">
+                     <button 
+                        onClick={scrollToHowItWorks}
+                        className="px-8 py-4 bg-transparent border border-white/30 hover:bg-white/10 text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm"
+                     >
                         <PlayIcon className="w-5 h-5" />
                         كيف يعمل؟
                      </button>

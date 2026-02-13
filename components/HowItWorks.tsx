@@ -3,7 +3,7 @@ import { ToolIcon, PencilIcon, SparklesIcon, ArrowRightIcon } from './Icons';
 
 const HowItWorks: React.FC = () => {
   return (
-    <section className="py-24 bg-white relative overflow-hidden">
+    <section id="how-it-works" className="py-24 bg-white relative overflow-hidden scroll-mt-20">
       {/* Background Decorations */}
       <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-purple-50 blur-3xl opacity-50 pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-indigo-50 blur-3xl opacity-50 pointer-events-none"></div>
