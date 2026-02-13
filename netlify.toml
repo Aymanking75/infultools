@@ -1,9 +1,0 @@
-[build]
-  command = "npm run build"
-  publish = "dist"
-
-# Handle Single Page Application Routing (Fixes 404 on refresh)
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
