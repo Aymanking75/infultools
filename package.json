@@ -2,17 +2,15 @@
   "name": "influtools",
   "version": "1.0.0",
   "description": "AI Tools for Influencers",
-  "main": "index.tsx",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "@google/genai": "latest"
     "react-markdown": "^9.0.1",
     "firebase": "^10.8.0",
     "lucide-react": "^0.344.0"
