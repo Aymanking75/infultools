@@ -41,19 +41,8 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({ onClose }) => {
 
       setStatus("قلت: " + transcript);
 
-      try {
-        // إرسال النص إلى API محلي
-        const res = await fetch("/api/assistant", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: transcript }),
-        });
-
-        const data = await res.json();
-        speak(data.text);
-      } catch {
-        speak("حدث خطأ في الاتصال بالخادم");
-      }
+      // استجابة تلقائية (بدون GenAI)
+      speak("سمعتك تقول: " + transcript);
     };
 
     recognitionRef.current = recognition;
