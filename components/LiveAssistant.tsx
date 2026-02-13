@@ -42,6 +42,7 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({ onClose }) => {
       setStatus("قلت: " + transcript);
 
       try {
+        // إرسال النص إلى API محلي
         const res = await fetch("/api/assistant", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -58,13 +59,8 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({ onClose }) => {
     recognitionRef.current = recognition;
   }, []);
 
-  const startListening = () => {
-    recognitionRef.current?.start();
-  };
-
-  const stopListening = () => {
-    recognitionRef.current?.stop();
-  };
+  const startListening = () => recognitionRef.current?.start();
+  const stopListening = () => recognitionRef.current?.stop();
 
   const speak = (text: string) => {
     const utterance = new SpeechSynthesisUtterance(text);
@@ -88,9 +84,7 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({ onClose }) => {
         </div>
 
         {/* Status */}
-        <p className="text-center text-white/60 mb-6">
-          {status}
-        </p>
+        <p className="text-center text-white/60 mb-6">{status}</p>
 
         {/* Controls */}
         {!listening ? (
