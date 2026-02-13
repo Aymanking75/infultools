@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { XIcon, MicIcon, StopIcon, VolumeIcon, SparklesIcon } from "./Icons";
+import { XIcon, MicIcon, StopIcon, SparklesIcon } from "./Icons";
 
 interface LiveAssistantProps {
   onClose: () => void;
@@ -7,7 +7,7 @@ interface LiveAssistantProps {
 
 export const LiveAssistant: React.FC<LiveAssistantProps> = ({ onClose }) => {
   const [listening, setListening] = useState(false);
-  const [text, setText] = useState("");
+  const [status, setStatus] = useState("اضغط للبدء");
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
@@ -15,52 +15,69 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({ onClose }) => {
       (window as any).SpeechRecognition ||
       (window as any).webkitSpeechRecognition;
 
-    if (!SpeechRecognition) return;
+    if (!SpeechRecognition) {
+      setStatus("المتصفح لا يدعم التعرف على الصوت");
+      return;
+    }
 
-    const rec = new SpeechRecognition();
-    rec.lang = "ar";
-    rec.continuous = true;
-    rec.interimResults = false;
+    const recognition = new SpeechRecognition();
+    recognition.lang = "ar-DZ";
+    recognition.continuous = true;
+    recognition.interimResults = false;
 
-    rec.onresult = async (e: any) => {
-      const transcript = e.results[e.results.length - 1][0].transcript;
-      setText(transcript);
-
-      // أرسل النص إلى API
-      const res = await fetch("/api/assistant", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: transcript })
-      });
-
-      const data = await res.json();
-      speak(data.text);
+    recognition.onstart = () => {
+      setListening(true);
+      setStatus("أنا أستمع إليك...");
     };
 
-    recognitionRef.current = rec;
+    recognition.onend = () => {
+      setListening(false);
+      setStatus("اضغط للبدء");
+    };
+
+    recognition.onresult = async (event: any) => {
+      const transcript =
+        event.results[event.results.length - 1][0].transcript;
+
+      setStatus("قلت: " + transcript);
+
+      try {
+        const res = await fetch("/api/assistant", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: transcript }),
+        });
+
+        const data = await res.json();
+        speak(data.text);
+      } catch {
+        speak("حدث خطأ في الاتصال بالخادم");
+      }
+    };
+
+    recognitionRef.current = recognition;
   }, []);
 
-  const start = () => {
+  const startListening = () => {
     recognitionRef.current?.start();
-    setListening(true);
   };
 
-  const stop = () => {
+  const stopListening = () => {
     recognitionRef.current?.stop();
-    setListening(false);
   };
 
-  const speak = (msg: string) => {
-    const utter = new SpeechSynthesisUtterance(msg);
-    utter.lang = "ar";
-    speechSynthesis.speak(utter);
+  const speak = (text: string) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "ar";
+    speechSynthesis.speak(utterance);
   };
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-gray-900 rounded-2xl p-6 w-full max-w-md text-white">
+      <div className="bg-gray-900 w-full max-w-md p-6 rounded-2xl text-white">
 
-        <div className="flex justify-between items-center mb-4">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
             <SparklesIcon className="w-5 h-5 text-purple-400" />
             <span className="font-bold">المساعد الصوتي</span>
@@ -70,21 +87,23 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({ onClose }) => {
           </button>
         </div>
 
-        <p className="text-sm text-white/60 mb-6">
-          {listening ? "أنا أستمع إليك..." : "اضغط للبدء"}
+        {/* Status */}
+        <p className="text-center text-white/60 mb-6">
+          {status}
         </p>
 
+        {/* Controls */}
         {!listening ? (
           <button
-            onClick={start}
+            onClick={startListening}
             className="w-full bg-white text-black py-3 rounded-xl font-bold flex items-center justify-center gap-2"
           >
             <MicIcon className="w-5 h-5" />
-            بدء
+            بدء المحادثة
           </button>
         ) : (
           <button
-            onClick={stop}
+            onClick={stopListening}
             className="w-full bg-red-500 py-3 rounded-xl font-bold flex items-center justify-center gap-2"
           >
             <StopIcon className="w-5 h-5" />
