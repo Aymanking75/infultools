@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   loginWithEmail, 
   registerWithEmail, 
@@ -6,7 +6,7 @@ import {
   updateUserProfile,
   sendUserVerification
 } from '../services/firebase';
-import { XIcon, GoogleIcon, SparklesIcon, MailIcon, CheckIcon } from './Icons';
+import { XIcon, GoogleIcon, SparklesIcon, MailIcon, CheckIcon, RefreshCwIcon } from './Icons';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -23,10 +23,35 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
   // State for verification success message
   const [showVerificationSent, setShowVerificationSent] = useState(false);
 
+  // Captcha State
+  const [captcha, setCaptcha] = useState({ num1: 0, num2: 0 });
+  const [captchaAnswer, setCaptchaAnswer] = useState('');
+
+  // Initialize and Reset Captcha
+  useEffect(() => {
+    generateCaptcha();
+  }, [isLogin]);
+
+  const generateCaptcha = () => {
+    setCaptcha({
+      num1: Math.floor(Math.random() * 10), // 0-9
+      num2: Math.floor(Math.random() * 10)  // 0-9
+    });
+    setCaptchaAnswer('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
+
+    // 1. Verify Captcha
+    const sum = captcha.num1 + captcha.num2;
+    if (parseInt(captchaAnswer) !== sum) {
+      setError("يرجى التحقق من رمز الحماية (الكابتشا) بشكل صحيح");
+      return;
+    }
+
+    setLoading(true);
 
     try {
       if (isLogin) {
@@ -64,6 +89,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
       } else {
         setError("حدث خطأ. يرجى المحاولة مرة أخرى.");
       }
+      // Regenerate captcha on error to prevent brute force with same solution
+      generateCaptcha();
     } finally {
       setLoading(false);
     }
@@ -202,6 +229,35 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all outline-none"
                 placeholder="••••••••"
               />
+            </div>
+
+            {/* Captcha */}
+            <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 space-y-2">
+               <label className="text-xs font-bold text-gray-500 uppercase">رمز الحماية</label>
+               <div className="flex items-center gap-3">
+                  <div className="flex-1 flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200 select-none">
+                     <span className="font-mono font-bold text-lg text-purple-600">{captcha.num1}</span>
+                     <span className="text-gray-400">+</span>
+                     <span className="font-mono font-bold text-lg text-purple-600">{captcha.num2}</span>
+                     <span className="text-gray-400">=</span>
+                  </div>
+                  <input
+                    type="tel"
+                    required
+                    value={captchaAnswer}
+                    onChange={(e) => setCaptchaAnswer(e.target.value)}
+                    className="w-20 px-3 py-2 rounded-lg border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none text-center font-bold text-lg"
+                    placeholder="؟"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={generateCaptcha}
+                    className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                    title="تحديث الرمز"
+                  >
+                     <RefreshCwIcon className="w-5 h-5" />
+                  </button>
+               </div>
             </div>
 
             {error && (

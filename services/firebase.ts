@@ -15,7 +15,9 @@ import {
 import { 
   getFirestore, 
   collection, 
-  addDoc, 
+  addDoc,
+  doc,
+  updateDoc, 
   serverTimestamp 
 } from 'firebase/firestore';
 
@@ -136,8 +138,6 @@ export const updateUserProfile = async (user: User, data: { displayName?: string
   }
   // Mock Logic
   console.log("[Demo] Updating profile:", data);
-  // In a real app, we can't easily mutate the mockUser globally without side effects, 
-  // but for demo purposes this log is sufficient.
   Object.assign(user, data);
   return;
 };
@@ -155,7 +155,7 @@ export const subscribeToAuthChanges = (callback: (user: User | null) => void) =>
   }
   // Mock Logic
   mockAuthListeners.push(callback);
-  // Trigger immediately with current mock state (usually null initially for demo)
+  // Trigger immediately with current mock state
   callback(null); 
   return () => {
     const idx = mockAuthListeners.indexOf(callback);
@@ -187,4 +187,65 @@ export const saveHistory = async (
   } else {
     console.log(`[Demo] Saving history for user ${userId}:`, { toolId, input, output, type });
   }
+};
+
+/**
+ * MOCK API Verification
+ * In a real production app, you should NEVER verify payments purely on the client.
+ * You should call your backend API which verifies the PayPal Order ID.
+ */
+export const verifyPaymentWithBackend = async (userToken: string, orderId: string) => {
+    console.log(`[API Call] Verifying order ${orderId} with backend...`);
+    
+    // Simulate API Network Delay
+    await new Promise(r => setTimeout(r, 1500));
+    
+    // In a real app:
+    // const res = await fetch('https://api.influtools.com/verify-payment', {
+    //   method: 'POST',
+    //   headers: { Authorization: `Bearer ${userToken}` },
+    //   body: JSON.stringify({ orderId })
+    // });
+    // if (!res.ok) throw new Error('Payment verification failed');
+    
+    return { success: true, verifiedAt: new Date().toISOString() };
+};
+
+export const upgradeUserToPro = async (userId: string, paymentData: any) => {
+    if (db) {
+        try {
+            const userRef = doc(db, 'users', userId);
+            
+            // 1. Update User Profile
+            await updateDoc(userRef, {
+                isPro: true,
+                subscriptionDate: serverTimestamp(),
+                lastPaymentId: paymentData.id
+            }).catch(async (e) => {
+                 // If doc doesn't exist, we might need to setDoc (merge)
+                 // For now, logging error or ignoring if user structure is different
+                 console.warn("Could not update user doc (might not exist yet):", e);
+            });
+
+            // 2. Log Payment Transaction
+            await addDoc(collection(db, 'payments'), {
+                userId,
+                amount: paymentData.purchase_units[0].amount.value,
+                currency: paymentData.purchase_units[0].amount.currency_code,
+                paymentId: paymentData.id,
+                status: paymentData.status,
+                payerEmail: paymentData.payer?.email_address,
+                createdAt: serverTimestamp()
+            });
+            
+            return true;
+        } catch (e) {
+            console.error("Error upgrading user in DB:", e);
+            throw e;
+        }
+    } else {
+        console.log(`[Demo] Upgrading user ${userId} to PRO with payment:`, paymentData);
+        // Simulate success for demo
+        return true;
+    }
 };

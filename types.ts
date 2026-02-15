@@ -5,7 +5,11 @@ export enum ToolType {
   HASHTAGS = 'hashtags',
   SCRIPT = 'script',
   IDEAS = 'ideas',
-  IMAGE = 'image'
+  IMAGE = 'image',
+  STORE = 'store',
+  WEBSITE = 'website',
+  OUTLINE = 'outline',
+  LANDING_PAGE = 'landing_page'
 }
 
 export interface ToolDef {
@@ -17,6 +21,7 @@ export interface ToolDef {
   inputLabel: string;
   inputPlaceholder: string;
   color: string;
+  modelName?: string;
 }
 
 export interface PricingPlan {

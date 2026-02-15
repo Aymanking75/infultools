@@ -1,5 +1,5 @@
 {
-  "name": "Copy of InfluTools",
+  "name": "InfluTools",
   "description": "منصة أدوات الذكاء الاصطناعي للمؤثرين وصناع المحتوى العرب. تتضمن مولد أفكار، كاتب سكريبت، ومولد هاشتاقات.",
   "requestFramePermissions": [
     "microphone"
